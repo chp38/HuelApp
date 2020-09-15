@@ -19,7 +19,7 @@ class AverageOrderValueService
     public function customersAverageOrderValue()
     {
         $lastOrder = Order::orderBy('ordered_at', 'desc')->first();
-        $key = 'last_order' . $lastOrder->ordered_at;
+        $key = 'last_order_' . $lastOrder->ordered_at;
 
         $orders = Order::all();
         $average = $this->getCachedAverage($key, $orders);
@@ -39,7 +39,7 @@ class AverageOrderValueService
     public function customerAverageOrderValue(int $id)
     {
         $lastOrder = Order::where('customer_id', $id)->orderBy('ordered_at', 'desc')->first();
-        $key = 'customer_' . $id . 'last_order' . $lastOrder->ordered_at;
+        $key = 'customer_' . $id . '_last_order' . $lastOrder->ordered_at;
 
         $customer = Customer::find($id);
 
