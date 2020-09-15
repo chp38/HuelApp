@@ -27,6 +27,9 @@ class ShopifyRepository
      */
     private $prefix;
 
+    /**
+     * @var array
+     */
     private $lastHeader;
 
     /**

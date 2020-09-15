@@ -41,6 +41,8 @@ SHOPIFY_APP_SECRET=
 You can then run:
 
 ```sh
+composer install
+php artisan key:generate
 ./run
 ```
 
@@ -67,12 +69,6 @@ These three artisan commands, will grab the customers, products and orders from
 Shopify, and add them to the local databse, as a quick and re-usable way to get 
 the database populated with the data that we need.
 
-You may also need to run the following command to generate the key for the .env:
-
-```sh
-docker exec -it container_app php artisan key:generate
-```
-
 ## Services
 
 Two main services are provided by the application:
@@ -83,7 +79,13 @@ Two main services are provided by the application:
   values, from the data.
   
   Creating the Average Order Values was quite easy, calling the avg() function
-  on the Eloquent models, with the callback to the field to be used.
+  on the Eloquent models, with the callback to the field to be used. The average
+  order price is stored, by the date of the last order as part of the key in
+  Redis Cache, this is to speed up future requests (removing the need to call
+  avg()). If there is a new order, the total will be recalculated.
+  
+  NOTE: This doesn't work for the variant order average as it was tricker with 
+  the database tables structure and getting the last order, I ran out of time.
 
 - ShopifyService: 
   One of the functions of the application is to request data from Shopify, hence
@@ -112,7 +114,6 @@ get /api/variant/{id}/average-order-value
 
 Returning the average order price of all orders, all orders for a given customer
 and all orders for a given variant.
-
 
 ## Dealing With Shopify
 
@@ -170,15 +171,3 @@ and variant average order values are hardcoded to a set value.
 Looking at the products and variants, I thought it would be ideal to store both
 in one table, but have the Shopify products as a parent, and each variant as a 
 child product, using the `product_id` column to link to the parent.
-
-## Further work
-
-There is two features I would have liked to have added if I had more time:
-
-1. Add the ability to change the customer/product variant to get different 
-average orders.
-
-2. Attempt to cache using redis the average order for a particular customer/
-variant and all orders. I planned to do this by storing the AOV with a date
-of the last current order in the DB, and check this, if it's different then 
-recompute the AOV, return if the date is the same.
