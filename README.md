@@ -173,7 +173,7 @@ child product, using the `product_id` column to link to the parent.
 
 ## Further work
 
-There is two features I would have liked to have added:
+There is two features I would have liked to have added if I had more time:
 
 1. Add the ability to change the customer/product variant to get different 
 average orders.
