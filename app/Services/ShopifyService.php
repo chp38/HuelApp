@@ -6,6 +6,9 @@ use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderProduct;
 use App\Models\Product;
+use App\Repositories\CustomerRepository;
+use App\Repositories\OrderRepository;
+use App\Repositories\ProductRepository;
 use App\Repositories\Shopify\ShopifyCustomerRepository;
 use App\Repositories\Shopify\ShopifyOrderRepository;
 use App\Repositories\Shopify\ShopifyProductRepository;
@@ -15,31 +18,55 @@ class ShopifyService
     /**
      * @var ShopifyCustomerRepository
      */
-    private $customerRepository;
+    private $shopifyCustomers;
 
     /**
      * @var ShopifyProductRepository
      */
-    private $productRepository;
+    private $shopifyProducts;
 
     /**
      * @var ShopifyOrderRepository
+     */
+    private $shopifyOrders;
+
+    /**
+     * @var CustomerRepository
+     */
+    private $customerRepository;
+
+    /**
+     * @var ProductRepository
+     */
+    private $productRepository;
+
+    /**
+     * @var OrderRepository
      */
     private $orderRepository;
 
     /**
      * ShopifyService constructor.
      *
-     * @param ShopifyCustomerRepository $customerRepository
-     * @param ShopifyProductRepository $productRepository
-     * @param ShopifyOrderRepository $orderRepository
+     * @param ShopifyCustomerRepository $shopifyCustomers
+     * @param ShopifyProductRepository $shopifyProducts
+     * @param ShopifyOrderRepository $shopifyOrders
+     * @param CustomerRepository $customerRepository
+     * @param ProductRepository $productRepository
+     * @param OrderRepository $orderRepository
      */
     public function __construct(
-        ShopifyCustomerRepository $customerRepository,
-        ShopifyProductRepository $productRepository,
-        ShopifyOrderRepository $orderRepository
+        ShopifyCustomerRepository $shopifyCustomers,
+        ShopifyProductRepository $shopifyProducts,
+        ShopifyOrderRepository $shopifyOrders,
+        CustomerRepository $customerRepository,
+        ProductRepository $productRepository,
+        OrderRepository $orderRepository
     )
     {
+        $this->shopifyCustomers = $shopifyCustomers;
+        $this->shopifyProducts = $shopifyProducts;
+        $this->shopifyOrders = $shopifyOrders;
         $this->orderRepository = $orderRepository;
         $this->productRepository = $productRepository;
         $this->customerRepository = $customerRepository;
@@ -53,22 +80,16 @@ class ShopifyService
      */
     public function getCustomers(string $pageInfo = '')
     {
-        $customers = $this->customerRepository->getCustomers([
+        $customers = $this->shopifyCustomers->getCustomers([
             'limit' => 250,
             'page_info' => $pageInfo
         ]);
 
         foreach ($customers['customers'] as $customer) {
-            $newCustomer = new Customer();
-
-            $newCustomer->ext_id = $customer['id'];
-            $newCustomer->first_name = $customer['first_name'];
-            $newCustomer->last_name = $customer['last_name'];
-
-            $newCustomer->save();
+            $this->createCustomer($customer);
         }
 
-        $links = $this->orderRepository->getNextLink();
+        $links = $this->shopifyCustomers->getNextLink();
 
         if (isset($links['next'])){
             $this->getCustomers($links['next']);
@@ -83,37 +104,22 @@ class ShopifyService
      */
     public function getOrders(string $pageInfo = '')
     {
-        $orders = $this->orderRepository->getOrders([
+        $orders = $this->shopifyOrders->getOrders([
             'limit' => 250,
-            'fields' => 'id, total_price, customer, currency, line_items',
+            'fields' => 'id, total_price, customer, currency, line_items, created_at',
             'page_info' => $pageInfo
         ]);
 
         foreach ($orders['orders'] as $order) {
-            $newOrder = new Order();
 
-            // Needs to have a customer
             if (!array_key_exists('customer', $order)) {
                 continue;
             }
 
-            $newOrder->ext_id = $order['id'];
-            $newOrder->customer_id = Customer::where('ext_id', $order['customer']['id'])->first()->id;
-            $newOrder->total_price = $order['total_price'];
-            $newOrder->currency = $order['currency'];
-            $newOrder->save();
-
-            foreach ($order['line_items'] as $lineItem) {
-                if (isset($lineItem['product_id'])) {
-                    $orderProduct = new OrderProduct();
-                    $orderProduct->order_id = $newOrder->id;
-                    $orderProduct->product_id = Product::where('ext_id', $lineItem['product_id'])->first()->id;
-                    $orderProduct->save();
-                }
-            }
+            $this->createOrder($order);
         }
 
-        $links = $this->orderRepository->getNextLink();
+        $links = $this->shopifyOrders->getNextLink();
 
         if (isset($links['next'])){
             $this->getOrders($links['next']);
@@ -129,36 +135,94 @@ class ShopifyService
      */
     public function getProducts(string $pageInfo = '')
     {
-        $products = $this->productRepository->getProducts([
+        $products = $this->shopifyProducts->getProducts([
             'page_info' => $pageInfo,
             'limit' => 250
         ]);
 
         foreach ($products['products'] as $product) {
-            $newProduct = new Product();
-
-            $newProduct->ext_id = $product['id'];
-            $newProduct->title = $product['title'];
-            $newProduct->save();
+            $newProductId = $this->createProduct($product);
 
             foreach ($product["variants"] as $variant) {
-                $newVariant = new Product();
-
-                $newVariant->ext_id = $variant['id'];
-                $newVariant->title = $variant['title'];
-                $newVariant->sku = $variant['sku'];
-                $newVariant->ext_id = $variant['id'];
-                $newVariant->price = $variant['price'];
-                $newVariant->product_id = $newProduct->id;
-
-                $newVariant->save();
+                $this->createProduct($variant, $newProductId);
             }
         }
 
-        $links = $this->orderRepository->getNextLink();
+        $links = $this->shopifyProducts->getNextLink();
 
         if (isset($links['next'])){
             $this->getProducts($links['next']);
         }
+    }
+
+    /**
+     * Create single customer
+     *
+     * @param array $customer
+     * @return mixed
+     */
+    public function createCustomer(array $customer)
+    {
+        $newCustomer = [
+            'ext_id' => $customer['id'],
+            'first_name' => $customer['first_name'],
+            'last_name' => $customer['last_name']
+        ];
+
+        return $this->customerRepository->createIfNotExists($newCustomer, 'ext_id');
+    }
+
+    /**
+     * Create single product
+     *
+     * @param array $product
+     * @param null $productId
+     * @return mixed
+     */
+    public function createProduct(array $product, $productId = null)
+    {
+        $newProduct = [
+            'ext_id' => $product['id'],
+            'title' => $product['title'],
+            'sku' => $product['sku'] ?? null,
+            'price' => $product['price'] ?? null,
+            'product_id' => $productId
+        ];
+
+        return $this->productRepository->createIfNotExists($newProduct, 'ext_id');
+    }
+
+    /**
+     * Create single order
+     *
+     * @param array $order
+     * @return mixed
+     */
+    public function createOrder(array $order)
+    {
+        if (!$this->orderRepository->findBy('ext_id', $order['id'])) {
+            $createdAt = $order['created_at'];
+
+            $newOrder = [
+                'ext_id' => $order['id'],
+                'customer_id' => $this->customerRepository->findBy('ext_id', $order['customer']['id'])->id,
+                'total_price' => $order['total_price'],
+                'currency' => $order['currency'],
+                'ordered_at' => date("Y-m-d H:i:s", strtotime($createdAt)),
+            ];
+
+            $newOrderId = $this->orderRepository->createIfNotExists($newOrder, 'ext_id');
+
+            foreach ($order['line_items'] as $lineItem) {
+                if (isset($lineItem['product_id'])) {
+                    $orderProduct = new OrderProduct();
+                    $orderProduct->order_id = $newOrderId;
+                    $orderProduct->product_id = $this->productRepository->findBy('ext_id', $lineItem['variant_id'])->id;
+                    $orderProduct->save();
+                }
+            }
+        }
+
+        return $newOrderId;
     }
 }

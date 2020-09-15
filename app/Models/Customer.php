@@ -10,6 +10,15 @@ class Customer extends Model
     use HasFactory;
 
     /**
+     * @var array
+     */
+    protected $fillable = [
+        'ext_id',
+        'first_name',
+        'last_name',
+    ];
+
+    /**
      * Get the orders the user has made.
      */
     public function orders()

@@ -5,8 +5,15 @@
                 Average Across All Customers
             </h2>
         </template>
-
-        {{ average }}
+        <p>
+            Average for all orders(total: {{ totalOrders }}): {{ customersAverage }}
+        </p>
+        <p>
+            Average For Customer {{ customerName }}: {{ customerAverage }}
+        </p>
+        <p>
+            Average For Variant {{ variantName }}: {{ variantAverage }}
+        </p>
     </app-layout>
 </template>
 
@@ -23,16 +30,38 @@
         },
         data () {
             return {
-                average: null
+                customersAverage: null,
+                customerAverage: null,
+                variantAverage: null,
+                totalOrders: null,
+                customerName: null,
+                variantName: null
             }
         },
         mounted () {
-            axios.get('/api/variant/10/average-order-value', {
+            axios.get('/api/variant/39/average-order-value', {
                 headers: {
                     'X-XSRF-TOKEN': Csrf.getCookie(),
                 },
             }).then(response => {
-                this.average = response.data
+                this.variantAverage = response.data.average;
+                this.variantName = response.data.variantName;
+            });
+            axios.get('/api/customer/10/average-order-value', {
+                headers: {
+                    'X-XSRF-TOKEN': Csrf.getCookie(),
+                },
+            }).then(response => {
+                this.customerAverage = response.data.average;
+                this.customerName = response.data.customerName;
+            });
+            axios.get('/api/customers/average-order-value', {
+                headers: {
+                    'X-XSRF-TOKEN': Csrf.getCookie(),
+                },
+            }).then(response => {
+                this.customersAverage = response.data.average;
+                this.totalOrders = response.data.totalOrders;
             });
         }
     }

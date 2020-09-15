@@ -2880,6 +2880,10 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
 
 
 
@@ -3349,6 +3353,13 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
 
 
 
@@ -3360,18 +3371,40 @@ __webpack_require__.r(__webpack_exports__);
   },
   data: function data() {
     return {
-      average: null
+      customersAverage: null,
+      customerAverage: null,
+      variantAverage: null,
+      totalOrders: null,
+      customerName: null,
+      variantName: null
     };
   },
   mounted: function mounted() {
     var _this = this;
 
-    axios__WEBPACK_IMPORTED_MODULE_3___default.a.get('/api/variant/10/average-order-value', {
+    axios__WEBPACK_IMPORTED_MODULE_3___default.a.get('/api/variant/39/average-order-value', {
       headers: {
         'X-XSRF-TOKEN': _Profile_Csrf__WEBPACK_IMPORTED_MODULE_2__["default"].getCookie()
       }
     }).then(function (response) {
-      _this.average = response.data;
+      _this.variantAverage = response.data.average;
+      _this.variantName = response.data.variantName;
+    });
+    axios__WEBPACK_IMPORTED_MODULE_3___default.a.get('/api/customer/10/average-order-value', {
+      headers: {
+        'X-XSRF-TOKEN': _Profile_Csrf__WEBPACK_IMPORTED_MODULE_2__["default"].getCookie()
+      }
+    }).then(function (response) {
+      _this.customerAverage = response.data.average;
+      _this.customerName = response.data.customerName;
+    });
+    axios__WEBPACK_IMPORTED_MODULE_3___default.a.get('/api/customers/average-order-value', {
+      headers: {
+        'X-XSRF-TOKEN': _Profile_Csrf__WEBPACK_IMPORTED_MODULE_2__["default"].getCookie()
+      }
+    }).then(function (response) {
+      _this.customersAverage = response.data.average;
+      _this.totalOrders = response.data.totalOrders;
     });
   }
 });
@@ -44049,6 +44082,16 @@ var render = function() {
                                   )
                                 : _vm._e(),
                               _vm._v(" "),
+                              _c(
+                                "jet-dropdown-link",
+                                { attrs: { href: "/averages" } },
+                                [
+                                  _vm._v(
+                                    "\n                                    Order Averages\n                                "
+                                  )
+                                ]
+                              ),
+                              _vm._v(" "),
                               _c("div", {
                                 staticClass: "border-t border-gray-100"
                               }),
@@ -45090,7 +45133,38 @@ var render = function() {
         }
       ])
     },
-    [_vm._v("\n\n    " + _vm._s(_vm.average) + "\n")]
+    [
+      _vm._v(" "),
+      _c("p", [
+        _vm._v(
+          "\n        Average for all orders(total: " +
+            _vm._s(_vm.totalOrders) +
+            "): " +
+            _vm._s(_vm.customersAverage) +
+            "\n    "
+        )
+      ]),
+      _vm._v(" "),
+      _c("p", [
+        _vm._v(
+          "\n        Average For Customer " +
+            _vm._s(_vm.customerName) +
+            ": " +
+            _vm._s(_vm.customerAverage) +
+            "\n    "
+        )
+      ]),
+      _vm._v(" "),
+      _c("p", [
+        _vm._v(
+          "\n        Average For Variant " +
+            _vm._s(_vm.variantName) +
+            ": " +
+            _vm._s(_vm.variantAverage) +
+            "\n    "
+        )
+      ])
+    ]
   )
 }
 var staticRenderFns = []

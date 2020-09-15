@@ -17,7 +17,7 @@ class CreateCustomersTable extends Migration
             $table->id();
             $table->string('first_name', 50);
             $table->string('last_name', 50);
-            $table->string('ext_id', 15)->unique();
+            $table->string('ext_id', 30)->unique();
             $table->softDeletes();
             $table->timestamps();
         });

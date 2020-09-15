@@ -17,7 +17,8 @@ class CreateOrdersTable extends Migration
             $table->id();
             $table->string('currency', 3);
             $table->decimal('total_price', 15,2);
-            $table->string('ext_id', 15)->unique();
+            $table->dateTime('ordered_at');
+            $table->string('ext_id', 30)->unique();
             $table->unsignedBigInteger('customer_id');
             $table->foreign('customer_id')->references('id')->on('customers');
             $table->softDeletes();

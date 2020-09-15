@@ -1,8 +1,7 @@
 <?php
 
 use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\ProductController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\ShopifyController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -20,4 +19,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/customers/average-order-value', [CustomerController::class, 'customersAverage']);
     Route::get('/customer/{id}/average-order-value', [CustomerController::class, 'customerAverage']);
     Route::get('/variant/{id}/average-order-value', [CustomerController::class, 'variantAverage']);
+});
+
+Route::name('shopify.')->group(function () {
+    Route::post('/shopify/create/customer', [ShopifyController::class, 'createCustomer'])->name('create.customer');
+    Route::post('/shopify/create/product', [ShopifyController::class, 'createProduct'])->name('create.product');
+    Route::post('/shopify/create/order', [ShopifyController::class, 'createOrder'])->name('create.order');
 });

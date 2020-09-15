@@ -18,7 +18,10 @@ class AverageOrderValueService
     {
         $orders = Order::all();
 
-        return $orders->avg('total_price');
+        return [
+            'average' => '£' . number_format($orders->avg('total_price'), 2),
+            'totalOrders' => $orders->count(),
+        ];
     }
 
     /**
@@ -33,7 +36,10 @@ class AverageOrderValueService
 
         $orders = $customer->orders;
 
-        return $orders->avg('total_price');
+        return [
+            'average' =>'£' . number_format($orders->avg('total_price'), 2),
+            'customerName' => $customer->first_name . ' ' . $customer->last_name
+        ];
     }
 
     /**
@@ -48,6 +54,9 @@ class AverageOrderValueService
 
         $orders = $product->orders();
 
-        return $orders->avg('total_price');
+        return [
+            'average' => "£" . number_format($orders->avg('total_price'), 2),
+            'variantName' => $product->title
+        ];
     }
 }

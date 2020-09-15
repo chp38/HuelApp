@@ -1,0 +1,11 @@
+#!/bin/bash
+
+docker-compose build
+docker-compose up -d
+
+sleep 10
+docker exec -it container_app php artisan migrate:fresh --seed
+
+docker exec -it container_app php artisan shopify:get:customers
+docker exec -it container_app php artisan shopify:get:products
+docker exec -it container_app php artisan shopify:get:orders

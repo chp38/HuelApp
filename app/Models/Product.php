@@ -9,6 +9,14 @@ class Product extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'title',
+        'ext_id',
+        'price',
+        'sku',
+        'product_id'
+    ];
+
     /**
      * Get the orders this product is used in
      */
