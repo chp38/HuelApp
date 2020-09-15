@@ -83,7 +83,7 @@ class ShopifyController extends Controller
     {
         $data = file_get_contents('php://input');
 
-        $calculated_hmac = base64_encode(hash_hmac('sha256', $data, SHOPIFY_APP_SECRET, true));
+        $calculated_hmac = base64_encode(hash_hmac('sha256', $data, config('shopify.app_secret'), true));
         return hash_equals($hmac, $calculated_hmac);
     }
 }
