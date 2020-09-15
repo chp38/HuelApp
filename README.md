@@ -170,3 +170,15 @@ and variant average order values are hardcoded to a set value.
 Looking at the products and variants, I thought it would be ideal to store both
 in one table, but have the Shopify products as a parent, and each variant as a 
 child product, using the `product_id` column to link to the parent.
+
+## Further work
+
+There is two features I would have liked to have added:
+
+1. Add the ability to change the customer/product variant to get different 
+average orders.
+
+2. Attempt to cache using redis the average order for a particular customer/
+variant and all orders. I planned to do this by storing the AOV with a date
+of the last current order in the DB, and check this, if it's different then 
+recompute the AOV, return if the date is the same.
