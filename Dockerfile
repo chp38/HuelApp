@@ -2,6 +2,7 @@ FROM php:7-fpm
 
 # PHP extensions
 RUN apt-get update && apt-get install -y mariadb-client zip unzip git npm vim
+RUN pecl install redis && docker-php-ext-enable redis
 RUN docker-php-ext-install pdo_mysql
 
 # Composer
