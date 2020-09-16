@@ -41,7 +41,6 @@ SHOPIFY_APP_SECRET=
 You can then run:
 
 ```sh
-composer install
 php artisan key:generate
 ./run
 ```
