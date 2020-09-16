@@ -83,8 +83,9 @@ Two main services are provided by the application:
   Redis Cache, this is to speed up future requests (removing the need to call
   avg()). If there is a new order, the total will be recalculated.
   
-  NOTE: This doesn't work for the variant order average as it was tricker with 
-  the database tables structure and getting the last order, I ran out of time.
+  NOTE: The caching isn't in place for the variant order average as it was 
+  tricker with the database tables structure and getting the last order, I ran 
+  out of time.
 
 - ShopifyService: 
   One of the functions of the application is to request data from Shopify, hence
